@@ -1,13 +1,30 @@
 export class CircuitBreaker {
-    
-    public state: CircuitState = CircuitState.closed;
 
-    public run(action: (n: void) => any) : void {
-        action();
-    }
+  private state: CircuitState = CircuitState.closed;
+  private counter: number = 0;
 
+  public run(action: () => any): void {
+    if (this.state === CircuitState.closed) 
+        try {
+            this.counter++;
+            action();
+        } catch {
+            if (this.counter >= this.openAfter) {
+                this.state = CircuitState.open;
+                setTimeout(() => { this.state = CircuitState.closed}, this.resetTimeout)
+            }
+
+        }
+  }
+
+  constructor(
+      private openAfter: number, 
+      private resetTimeout: number = 0) {
+  }
 }
 
 export enum CircuitState {
-    closed
+  closed,
+  open,
+  halfOpen
 }
